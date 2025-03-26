@@ -5,12 +5,21 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: devops
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
     ports:
       - '3306:3306'
     volumes:
       - myvol:/var/lib/mysql
     networks:
       - mynet
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]  # Healthcheck for MySQL
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 5s
+
   flask-app:
     build:
       context: .
@@ -24,18 +33,20 @@ services:
     networks:
       - mynet
     healthcheck:
-      test: ["CMD","mysqladmin","ping","-h","localhost"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "mysql"]  # Pinging the MySQL container from Flask
       interval: 10s
       retries: 5
       start_period: 30s
       timeout: 5s
     depends_on:
       mysql:
-        condition: service_healthy
+        condition: service_healthy  # Waits for MySQL to be healthy before starting Flask
+
 volumes:
   myvol:
+
 networks:
-  mynet: 
-    driver: bridge
+  mynet:
+
 
 
